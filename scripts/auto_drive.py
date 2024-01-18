@@ -161,9 +161,27 @@ def semantic_lidar_callback(point_cloud, point_list):
     point_list.colors = o3d.utility.vector3dVector(int_color)
     
     
-    
-    
-    
+def add_open3d_axis(vis):
+    axis = o3d.geometry.LineSet()
+
+    axis.points = o3d.utility.Vector3dVector(np.array([
+        [0.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0]]))
+
+    axis.lines = o3d.utility.Vector2iVector(np.array([
+        [0, 1],
+        [0, 2],
+    ]))
+
+    axis.colors = o3d.utility.Vector3dVector(np.array([
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0]]))
+
+    vis.add_geometry(axis)
+
 
 def main():
     client = carla.Client("localhost", 2000)
@@ -190,7 +208,7 @@ def main():
         spawn_point = random.choice(world.get_map().get_spawn_points())
 
         vehicle = world.spawn_actor(bp, spawn_point)
-        #vehicle.set_autopilot(True)
+        vehicle.set_autopilot(True)
 
         vehicle.apply_control(carla.VehicleControl(throttle = 1.0, steer = 0.0))
         actor_list.append(vehicle)
@@ -213,15 +231,54 @@ def main():
         
         
         # To do: 3d Point Cloud visualizer
+        vis = o3d.visualization.Visualizer()
         
+        vis.create_window(
+            window_name = 'Carla Lidar',
+            width = 960,
+            height = 540,
+            left = 480,
+            top = 270
+        )
         
+        vis.get_render_option().background_color = [0.05, 0.05, 0.05]
+        vis.get_render_option().point_size = 1
+        vis.get_render_option().show_coordinate_frame = True
         
-        time.sleep(5)
-    
-
+        show_axis = True     
+        
+        if show_axis:
+            add_open3d_axis(vis)
+        
+        frame = 0
+        dt0 = datetime.now()
+        
+        while True:
+            if frame == 2:
+                vis.add_geometry(point_list)
+            vis.update_renderer()
+            
+            vis.poll_events()
+            vis.update_renderer()
+            
+            time.sleep(0.005)
+            world.tick()
+            
+            process_time = datetime.now() - dt0
+            sys.stdout.write('r' + 'FPS: ' + str(1.0 / process_time.total_seconds()))
+            sys.stdout.flush()
+            dt0 = datetime.now()
+            frame += 1
+            
     finally:
+        world.apply_settings(original_settings)
+        traffic_manager.set_synchronous_mode(False)
+
         for actor in actor_list:
             actor.destroy()
+
+        vis.destroy_window()
+        
         print("All cleaned up!")
 
 
