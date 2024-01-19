@@ -26,7 +26,7 @@ lidar_args = {
     'semantic': False,
     'no_noise': True,
     'noise_stddev': '0.2',
-    'channels': 32,
+    'channels': 128,
     'range': 1000,
     'points_per_second': 56000,
     'rotation_frequency': 10.0,
