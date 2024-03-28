@@ -1,3 +1,6 @@
+import carla
+import random
+
 def main():
     client = carla.Client('localhost', 2000)
     client.set_timeout(2.0)
@@ -22,8 +25,18 @@ def main():
             npc.set_autopilot(True)
             print('created %s' % npc.type_id)
         
-    camera_sensor(bp_lib, world, vehicle)
-        
+    safe_distance_sensor(bp_lib, world, vehicle)
+ 
+def safe_distance_sensor(bp_lib, world, vehicle):
+    safe_sensor = bp_lib.find('sensor.other.safe_distance')
+    safe_init_transf = carla.Transform(carla.Location(z = 2))
+    safe_sensor_spawn = world.spawn_actor(safe_sensor, safe_init_transf, attach_to = vehicle)
+    
+    
+    world_ref  = weakref.ref(world)
+    
+    
+    print('here')
 
 def camera_sensor(bp_lib, world, vehicle):
     camera_bp  = bp_lib.find("sensor.camera.rgb")
