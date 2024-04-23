@@ -167,3 +167,7 @@ class Lidar:
             [0.0, 0.0, 1.0]]))
 
         vis.add_geometry(axis)
+        
+if __name__ == '__main__':
+    camera = Camera()
+    

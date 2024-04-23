@@ -18,6 +18,7 @@ import random
 import numpy as np
 from matplotlib import cm
 import open3d as o3d
+import cv2 as cv
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -124,7 +125,7 @@ def generate_lidar_bp(arg, world, blueprint_library, delta):
     lidar_bp.set_attribute('update_rate', '15') # taxa de fps
     lidar_bp.set_attribute('aperture', '25') # Vertical FoV 
     lidar_bp.set_attribute('horizontal_aperture', '115') # Horizontal FoV
-    lidar_bp.set_attribute('horizontal_resolution', '100') # Resolucao Horizontal Angular
+    lidar_bp.set_attribute('horizontal_resolution', '5') # Resolucao Horizontal Angular
     lidar_bp.set_attribute('rain_intensity', '0') # Intensidade da chuva
     lidar_bp.set_attribute('threshold_minus_five', '0.00005')
     
@@ -151,6 +152,28 @@ def add_open3d_axis(vis):
     vis.add_geometry(axis)
 
 
+def process_img(image, h, w, world):
+    i = np.array(image.raw_data)
+    print(i.shape)
+    
+    i2 = i.reshape((h, w, 4))
+    i3 = i2[:, :, :3]
+    
+    dt0 = datetime.now()
+
+    # This can fix Open3D jittering issues:
+    time.sleep(0.005)
+    world.tick()
+    process_time = datetime.now() - dt0
+    sys.stdout.write('\r' + 'Camera FPS: ' + str(1.0 / process_time.total_seconds()))
+
+    sys.stdout.flush()
+    dt0 = datetime.now()
+    
+    
+    return i3/255
+
+
 def main(arg):
     """Main function of the script"""
     client = carla.Client(arg.host, arg.port)
@@ -169,25 +192,34 @@ def main(arg):
         settings.synchronous_mode = True
         settings.no_rendering_mode = arg.no_rendering
         world.apply_settings(settings)
-
+        
+        # Carla Blueprint Library
         blueprint_library = world.get_blueprint_library()
+        
+        # Car
         vehicle_bp = blueprint_library.filter(arg.filter)[0]
         vehicle_transform = random.choice(world.get_map().get_spawn_points())
         vehicle = world.spawn_actor(vehicle_bp, vehicle_transform)
         vehicle.set_autopilot(arg.no_autopilot)
 
+        # LiDAR
         lidar_bp = generate_lidar_bp(arg, world, blueprint_library, delta)
-
         user_offset = carla.Location(arg.x, arg.y, arg.z)
         lidar_transform = carla.Transform(carla.Location(x=-0.5, z=1.8) + user_offset)
-
         lidar = world.spawn_actor(lidar_bp, lidar_transform, attach_to=vehicle)
-
         point_list = o3d.geometry.PointCloud()
         lidar.listen(lambda data: lidar_callback(data, point_list))
-        #lidar.listen(lambda point_cloud: point_cloud.save_to_disk('syntheticdata/Lidar/%.6d.ply' % point_cloud.frame))
         
-        
+        # Add RGB camera
+        camera_bp = blueprint_library.find('sensor.camera.rgb') 
+        camera_init_trans = carla.Transform(carla.Location(x =-0.1,z=1.7)) 
+        camera = world.spawn_actor(camera_bp, lidar_transform, attach_to=vehicle)
+
+        image_w = camera_bp.get_attribute("image_size_x").as_int()
+        image_h = camera_bp.get_attribute("image_size_y").as_int()
+
+        camera.listen(lambda image: process_img(image, image_h, image_w, world))
+
         vis = o3d.visualization.Visualizer()
         vis.create_window(
             window_name='THI Lidar',
@@ -204,6 +236,7 @@ def main(arg):
 
         frame = 0
         dt0 = datetime.now()
+
         while True:
             if frame == 2:
                 vis.add_geometry(point_list)
@@ -211,17 +244,13 @@ def main(arg):
 
             vis.poll_events()
             vis.update_renderer()
-            # # This can fix Open3D jittering issues:
+
+            # This can fix Open3D jittering issues:
             time.sleep(0.005)
             world.tick()
-
             process_time = datetime.now() - dt0
-            sys.stdout.write('\r' + 'FPS: ' + str(1.0 / process_time.total_seconds()))
-            
-            #for point in point_list.points:
-            #    print(str(point))
-           
-            
+            sys.stdout.write('\r' + 'LiDAR FPS: ' + str(1.0 / process_time.total_seconds()))
+
             sys.stdout.flush()
             dt0 = datetime.now()
             frame += 1
@@ -232,6 +261,7 @@ def main(arg):
 
         vehicle.destroy()
         lidar.destroy()
+        camera.destroy()
         vis.destroy_window()
 
 
