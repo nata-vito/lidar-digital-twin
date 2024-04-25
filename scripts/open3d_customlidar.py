@@ -67,7 +67,8 @@ def lidar_callback(point_cloud, point_list):
 
     # Isolate the intensity and compute a color for it
     intensity = data[:, -1]
-    intensity_col = 1.0 - np.log(intensity) / np.log(np.exp(-0.004 * 100))
+    intensity_col = intensity
+    print(intensity)
     int_color = np.c_[
         np.interp(intensity_col, VID_RANGE, VIRIDIS[:, 0]),
         np.interp(intensity_col, VID_RANGE, VIRIDIS[:, 1]),
