@@ -121,16 +121,15 @@ def semantic_lidar_callback(point_cloud, point_list):
 def generate_lidar_bp(arg, world, blueprint_library, delta):    
     lidar_bp = world.get_blueprint_library().find('sensor.lidar.thi_lidar')
 
-    lidar_bp.set_attribute('lines', '160') # de fato, os canais do lidar 
+    lidar_bp.set_attribute('lines', '256') # de fato, os canais do lidar 
     lidar_bp.set_attribute('max_range', '250') # alcance maximo
-    lidar_bp.set_attribute('update_rate', '15') # taxa de fps
-    lidar_bp.set_attribute('aperture', '25') # Vertical FoV 
-    lidar_bp.set_attribute('horizontal_aperture', '115') # Horizontal FoV
-    lidar_bp.set_attribute('horizontal_resolution', '5') # Resolucao Horizontal Angular
+    lidar_bp.set_attribute('update_rate', '2') # taxa de fps
+    lidar_bp.set_attribute('lidar_vertical_fov', '25') # Vertical FoV 
+    lidar_bp.set_attribute('lidar_horizontal_fov', '115') # Horizontal FoV
+    lidar_bp.set_attribute('horizontal_resolution', '0.1') # Resolucao Horizontal Angular
     lidar_bp.set_attribute('rain_intensity', '0') # Intensidade da chuva
-    lidar_bp.set_attribute('threshold_minus_five', '0.00005')
-    
-    
+    lidar_bp.set_attribute('threshold_minus_five', '0.005')
+
     return lidar_bp
 
 
@@ -205,13 +204,19 @@ def main(arg):
 
         # LiDAR
         lidar_bp = generate_lidar_bp(arg, world, blueprint_library, delta)
-        user_offset = carla.Location(arg.x, arg.y, arg.z)
+
+        user_offset = carla.Location(x=-35.61, y=32.45, z=0.40)
         lidar_transform = carla.Transform(carla.Location(x=-0.5, z=1.8) + user_offset)
-        lidar = world.spawn_actor(lidar_bp, lidar_transform, attach_to=vehicle)
+        
+        """ user_offset = carla.Location(arg.x, arg.y, arg.z)
+        lidar_transform = carla.Transform(carla.Location(x=-0.5, z=1.8) + user_offset) """
+        
+        lidar = world.spawn_actor(lidar_bp, lidar_transform, attach_to = vehicle)
         point_list = o3d.geometry.PointCloud()
         lidar.listen(lambda data: lidar_callback(data, point_list))
         
         # Add RGB camera
+        """
         camera_bp = blueprint_library.find('sensor.camera.rgb') 
         camera_init_trans = carla.Transform(carla.Location(x =-0.1,z=1.7)) 
         camera = world.spawn_actor(camera_bp, lidar_transform, attach_to=vehicle)
@@ -220,7 +225,7 @@ def main(arg):
         image_h = camera_bp.get_attribute("image_size_y").as_int()
 
         camera.listen(lambda image: process_img(image, image_h, image_w, world))
-
+        """
         vis = o3d.visualization.Visualizer()
         vis.create_window(
             window_name='THI Lidar',
@@ -262,7 +267,6 @@ def main(arg):
 
         vehicle.destroy()
         lidar.destroy()
-        camera.destroy()
         vis.destroy_window()
 
 

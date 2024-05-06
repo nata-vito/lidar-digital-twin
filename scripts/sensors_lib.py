@@ -7,6 +7,9 @@ class Camera:
     def __init__(self) -> None:
         self.cam_img_width = 640
         self.cam_img_height = 480
+        self.x = 2.5
+        self.y = 0
+        self.z = 0.7
     
     def set_camera(self, carla, actor_list, blueprint_library, world, vehicle):
         cam_bp = blueprint_library.find('sensor.camera.rgb')
@@ -14,13 +17,13 @@ class Camera:
         cam_bp.set_attribute("image_size_y", "{}".format(self.cam_img_height))
         cam_bp.set_attribute("fov", "110")
         
-        spawn_point = carla.Transform(carla.Location(x = 2.5, z = 0.7))
+        spawn_point = carla.Transform(carla.Location(x = self.x, z = self.z))
 
         sensor = world.spawn_actor(cam_bp, spawn_point, attach_to = vehicle)
         actor_list.append(sensor)
         sensor.listen(lambda data: self.process_img(data))
         
-        return cam_bp
+        return sensor
     
     def process_img(self, image):
         i = np.array(image.raw_data)
@@ -127,7 +130,7 @@ class Lidar:
         # # An example of converting points from sensor to vehicle space if we had
         # # a carla.Transform variable named "tran":
         # points = np.append(points, np.ones((points.shape[0], 1)), axis=1)
-        # points = np.dot(tran.get_matrix(), points.T).T
+        # points = np.dot(tran.geprocess_imgt_matrix(), points.T).T
         # points = points[:, :-1]
 
         point_list.points = o3d.utility.Vector3dVector(points)
