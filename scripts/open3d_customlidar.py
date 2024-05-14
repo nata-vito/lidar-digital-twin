@@ -190,7 +190,7 @@ def main(arg):
 
         settings.fixed_delta_seconds = delta
         settings.synchronous_mode = True
-        settings.no_rendering_mode = arg.no_rendering
+        settings.no_rendering_mode = True
         world.apply_settings(settings)
         
         # Carla Blueprint Library
@@ -206,12 +206,12 @@ def main(arg):
         lidar_bp = generate_lidar_bp(arg, world, blueprint_library, delta)
 
         user_offset = carla.Location(x=-35.61, y=32.45, z=0.40)
-        lidar_transform = carla.Transform(carla.Location(x=-0.5, z=1.8) + user_offset)
+        lidar_transform = carla.Transform(carla.Location(x=-0.5, z=1.8) + user_offset, carla.Rotation(yaw = -90, ))
         
         """ user_offset = carla.Location(arg.x, arg.y, arg.z)
         lidar_transform = carla.Transform(carla.Location(x=-0.5, z=1.8) + user_offset) """
         
-        lidar = world.spawn_actor(lidar_bp, lidar_transform, attach_to = vehicle)
+        lidar = world.spawn_actor(lidar_bp, lidar_transform)
         point_list = o3d.geometry.PointCloud()
         lidar.listen(lambda data: lidar_callback(data, point_list))
         
