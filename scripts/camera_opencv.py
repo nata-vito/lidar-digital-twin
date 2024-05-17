@@ -6,7 +6,7 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
-"""Open3D Lidar visuialization example for CARLA"""
+"""OpenCv RGB Sensor Image processing visuialization example for CARLA"""
 
 import glob
 import os
@@ -16,8 +16,6 @@ import time
 from datetime import datetime
 import random
 import numpy as np
-from matplotlib import cm
-import open3d as o3d
 import cv2 as cv
 
 try:
