@@ -63,6 +63,7 @@ def lidar_callback(point_cloud, point_list):
     """Prepares a point cloud with intensity
     colors ready to be consumed by Open3D"""
     data = np.copy(np.frombuffer(point_cloud.raw_data, dtype=np.dtype('f4')))
+    #data = data[: len(data) - len(data) % 3]
     data = np.reshape(data, (int(data.shape[0] / 4), 4))
 
     # Isolate the intensity and compute a color for it
@@ -186,34 +187,43 @@ def main(arg):
         traffic_manager = client.get_trafficmanager(8000)
         traffic_manager.set_synchronous_mode(True)
 
-        delta = 0.05
+        delta = 0.01
 
         settings.fixed_delta_seconds = delta
         settings.synchronous_mode = True
-        settings.no_rendering_mode = True
+        settings.no_rendering_mode = arg.no_rendering
         world.apply_settings(settings)
-        
-        # Carla Blueprint Library
         blueprint_library = world.get_blueprint_library()
-        
-        # Car
-        vehicle_bp = blueprint_library.filter(arg.filter)[0]
-        vehicle_transform = random.choice(world.get_map().get_spawn_points())
-        vehicle = world.spawn_actor(vehicle_bp, vehicle_transform)
-        vehicle.set_autopilot(arg.no_autopilot)
 
-        # LiDAR
+        # --------------
+        # Spawn ego vehicle
+        # --------------
+        
+        ego_vehicle_bp = blueprint_library.filter(arg.filter)[0]
+        ego_vehicle_bp.set_attribute('role_name','ego')
+        
+        ego_vehicle_transform = random.choice(world.get_map().get_spawn_points())
+        ego_vehicle = world.spawn_actor(ego_vehicle_bp, ego_vehicle_transform)
+                
+        # --------------
+        # Add sensor to ego vehicle. 
+        # --------------
+
+        user_offset = carla.Location(arg.x, arg.y, arg.z)
+        lidar_transform = carla.Transform(carla.Location(x=-0.5, z=2.8) + user_offset)
+
         lidar_bp = generate_lidar_bp(arg, world, blueprint_library, delta)
+        lidar = world.spawn_actor(lidar_bp, lidar_transform, attach_to = ego_vehicle, attachment_type = carla.AttachmentType.Rigid)
 
-        user_offset = carla.Location(x=-35.61, y=32.45, z=0.40)
-        lidar_transform = carla.Transform(carla.Location(x=-0.5, z=1.8) + user_offset, carla.Rotation(yaw = -90, ))
-        
-        """ user_offset = carla.Location(arg.x, arg.y, arg.z)
-        lidar_transform = carla.Transform(carla.Location(x=-0.5, z=1.8) + user_offset) """
-        
-        lidar = world.spawn_actor(lidar_bp, lidar_transform)
         point_list = o3d.geometry.PointCloud()
         lidar.listen(lambda data: lidar_callback(data, point_list))
+        
+
+        # --------------
+        # Enable autopilot for ego vehicle
+        # --------------
+
+        ego_vehicle.set_autopilot(True)
         
         # Add RGB camera
         """
@@ -265,7 +275,7 @@ def main(arg):
         world.apply_settings(original_settings)
         traffic_manager.set_synchronous_mode(False)
 
-        vehicle.destroy()
+        ego_vehicle.destroy()
         lidar.destroy()
         vis.destroy_window()
 
