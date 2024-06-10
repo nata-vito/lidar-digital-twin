@@ -69,7 +69,6 @@ def lidar_callback(point_cloud, point_list):
     # Isolate the intensity and compute a color for it
     intensity = data[:, -1]
     intensity_col = intensity
-    print(intensity)
     int_color = np.c_[
         np.interp(intensity_col, VID_RANGE, VIRIDIS[:, 0]),
         np.interp(intensity_col, VID_RANGE, VIRIDIS[:, 1]),
@@ -122,13 +121,13 @@ def semantic_lidar_callback(point_cloud, point_list):
 def generate_lidar_bp(arg, world, blueprint_library, delta):    
     lidar_bp = world.get_blueprint_library().find('sensor.lidar.thi_lidar')
 
-    lidar_bp.set_attribute('lines', '256') # de fato, os canais do lidar 
-    lidar_bp.set_attribute('max_range', '250') # alcance maximo
-    lidar_bp.set_attribute('update_rate', '2') # taxa de fps
-    lidar_bp.set_attribute('lidar_vertical_fov', '25') # Vertical FoV 
-    lidar_bp.set_attribute('lidar_horizontal_fov', '115') # Horizontal FoV
-    lidar_bp.set_attribute('horizontal_resolution', '0.1') # Resolucao Horizontal Angular
-    lidar_bp.set_attribute('rain_intensity', '0') # Intensidade da chuva
+    lidar_bp.set_attribute('lines', '256')  
+    lidar_bp.set_attribute('max_range', '250') 
+    lidar_bp.set_attribute('update_rate', '10') 
+    lidar_bp.set_attribute('lidar_vertical_fov', '25')  
+    lidar_bp.set_attribute('lidar_horizontal_fov', '115') 
+    lidar_bp.set_attribute('horizontal_resolution', '0.2')
+    lidar_bp.set_attribute('rain_intensity', '0')
     lidar_bp.set_attribute('threshold_minus_five', '0.005')
 
     return lidar_bp
