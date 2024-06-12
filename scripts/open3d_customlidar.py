@@ -68,7 +68,7 @@ def lidar_callback(point_cloud, point_list):
 
     # Isolate the intensity and compute a color for it
     intensity = data[:, -1]
-    intensity_col = intensity
+    intensity_col = 1.0 - np.log(intensity) / np.log(np.exp(-0.004 * 100))
     int_color = np.c_[
         np.interp(intensity_col, VID_RANGE, VIRIDIS[:, 0]),
         np.interp(intensity_col, VID_RANGE, VIRIDIS[:, 1]),
@@ -190,7 +190,7 @@ def main(arg):
 
         settings.fixed_delta_seconds = delta
         settings.synchronous_mode = True
-        settings.no_rendering_mode = True
+        settings.no_rendering_mode = False
         world.apply_settings(settings)
         blueprint_library = world.get_blueprint_library()
 
@@ -249,12 +249,10 @@ def main(arg):
         if arg.show_axis:
             add_open3d_axis(vis)
 
-        time.sleep(5)
         frame = 0
         dt0 = datetime.now()
-        #time.sleep(1)
         while True:
-            if frame == 2:
+            if frame == 5:
                 vis.add_geometry(point_list)
             vis.update_geometry(point_list)
 
@@ -262,7 +260,7 @@ def main(arg):
             vis.update_renderer()
 
             # This can fix Open3D jittering issues:
-            time.sleep(0.05)
+            time.sleep(0.005)
             world.tick()
             process_time = datetime.now() - dt0
             sys.stdout.write('\r' + 'LiDAR FPS: ' + str(1.0 / process_time.total_seconds()))
