@@ -63,7 +63,6 @@ def lidar_callback(point_cloud, point_list):
     """Prepares a point cloud with intensity
     colors ready to be consumed by Open3D"""
     data = np.copy(np.frombuffer(point_cloud.raw_data, dtype=np.dtype('f4')))
-    #data = data[: len(data) - len(data) % 3]
     data = np.reshape(data, (int(data.shape[0] / 4), 4))
 
     # Isolate the intensity and compute a color for it
@@ -76,16 +75,7 @@ def lidar_callback(point_cloud, point_list):
 
     # Isolate the 3D data
     points = data[:, :-1]
-
-    # We're negating the y to correclty visualize a world that matches
-    # what we see in Unreal since Open3D uses a right-handed coordinate system
     points[:, :1] = -points[:, :1]
-
-    # # An example of converting points from sensor to vehicle space if we had
-    # # a carla.Transform variable named "tran":
-    # points = np.append(points, np.ones((points.shape[0], 1)), axis=1)
-    # points = np.dot(tran.get_matrix(), points.T).T
-    # points = points[:, :-1]
 
     point_list.points = o3d.utility.Vector3dVector(points)
     point_list.colors = o3d.utility.Vector3dVector(int_color)
@@ -208,16 +198,16 @@ def main(arg):
         # Add sensor to ego vehicle. 
         # --------------
 
-        user_offset = carla.Location(arg.x, arg.y, arg.z)
-        lidar_transform = carla.Transform(carla.Location(x=-0.5, z=2.8) + user_offset)
+        #user_offset = carla.Location(arg.x, arg.y, arg.z)
+        user_offset = carla.Location(x=-35.61, y=32.45, z=0.40)
+        lidar_transform = carla.Transform(carla.Location(x=-35.61, y=32.45, z=-0.40), carla.Rotation(pitch = 45.5, yaw = -120.5, roll = 0.00))
 
         lidar_bp = generate_lidar_bp(arg, world, blueprint_library, delta)
-        lidar = world.spawn_actor(lidar_bp, lidar_transform, attach_to = ego_vehicle, attachment_type = carla.AttachmentType.Rigid)
+        lidar = world.spawn_actor(lidar_bp, lidar_transform)
 
         point_list = o3d.geometry.PointCloud()
         lidar.listen(lambda data: lidar_callback(data, point_list))
         
-
         # --------------
         # Enable autopilot for ego vehicle
         # --------------
