@@ -26,9 +26,6 @@ def inferior_three(x):
 def inferior_four(x): 
     return -0.1514 * x - 12.599
 
-
-
-
 def right(x): 
     return -17.821 * x - 496.55
 
