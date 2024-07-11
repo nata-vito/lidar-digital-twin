@@ -116,7 +116,7 @@ def generate_lidar_bp(arg, world, blueprint_library, delta):
     lidar_bp.set_attribute('update_rate', '10') 
     lidar_bp.set_attribute('lidar_vertical_fov', '25')  
     lidar_bp.set_attribute('lidar_horizontal_fov', '115') 
-    lidar_bp.set_attribute('horizontal_resolution', '0.2')
+    lidar_bp.set_attribute('horizontal_resolution', '0.1')
     lidar_bp.set_attribute('rain_intensity', '0')
     lidar_bp.set_attribute('threshold_minus_five', '0.005')
 
@@ -198,10 +198,9 @@ def main(arg):
         # Add sensor to ego vehicle. 
         # --------------
 
-        #user_offset = carla.Location(arg.x, arg.y, arg.z)
+        #user_offset = carla.Location(arg.x, arg.y, arg.z) x=-35.00, y=30.45, z=5.4
         user_offset = carla.Location(x=-35.61, y=32.45, z=0.40)
-        lidar_transform = carla.Transform(carla.Location(x=-35.61, y=32.45, z=-0.40), carla.Rotation(pitch = 45.5, yaw = -120.5, roll = 0.00))
-
+        lidar_transform = carla.Transform(carla.Location(x=-35.61, y=32.45, z=5.40), carla.Rotation(pitch = 0, yaw = -120.5, roll = 0.00))
         lidar_bp = generate_lidar_bp(arg, world, blueprint_library, delta)
         lidar = world.spawn_actor(lidar_bp, lidar_transform)
 
@@ -259,14 +258,27 @@ def main(arg):
             dt0 = datetime.now()
             frame += 1
 
+    except Exception as e:
+            print(e)
+            destroy(world, original_settings, traffic_manager, ego_vehicle, lidar, vis)
     finally:
-        world.apply_settings(original_settings)
-        traffic_manager.set_synchronous_mode(False)
+        destroy(world, original_settings, traffic_manager, ego_vehicle, lidar, vis)
 
-        ego_vehicle.destroy()
-        lidar.destroy()
-        vis.destroy_window()
+ 
 
+ 
+
+def destroy(world, original_settings, traffic_manager, vehicles, lidar, vis):
+    world.apply_settings(original_settings)
+    traffic_manager.set_synchronous_mode(False)
+
+    """ for vehicle in vehicles:
+        vehicle.destroy() """
+        
+    vehicles.destroy()
+    lidar.destroy()
+    vis.destroy_window()
+    exit()
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(

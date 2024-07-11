@@ -80,7 +80,7 @@ def main():
     bottom_y_four = inferior_four(valid_x_four)
 
     # Number of lines to plot
-    num_lines = 16
+    num_lines = 256
 
     plot_combined_graph(
         [valid_x_one, valid_x_two, valid_x_three, valid_x_four],
