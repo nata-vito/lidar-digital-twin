@@ -68,10 +68,10 @@ def plot_combined_graph(valid_x_list, top_y_list, bottom_y_list, num_lines):
 
 def main():
     # Define the specific x range where both left and right are defined
-    valid_x_one = np.arange(-59.2906, -27.9015, 0.1)
-    valid_x_two = np.arange(-30.1478, 1.9507, 0.1)
+    valid_x_one = np.arange(-19869.514, -734.331, 0.1) # First region from LiDAR simulation
+    valid_x_two = np.arange(-30.1478, 1.9507, 0.1) 
     valid_x_three = np.arange(-1.9507, 30.5025, 0.1)
-    valid_x_four = np.arange(27.0738916256157, 59.8817733990147, 0.1)
+    valid_x_four = np.arange(27.0738916256157, 59.8817733990147, 0.1)   
 
     # Calculate corresponding y values for top (superior) and bottom (inferior) boundaries
     top_y_one = superior_one(valid_x_one)
@@ -84,7 +84,7 @@ def main():
     bottom_y_four = inferior_four(valid_x_four)
 
     # Number of lines to plot
-    num_lines = 16
+    num_lines = 256
 
     plot_combined_graph(
         [valid_x_one, valid_x_two, valid_x_three, valid_x_four],
