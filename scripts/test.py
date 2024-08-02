@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 # Define the boundary functions
 def superior_one(x): 
@@ -33,8 +34,17 @@ def left(x):
     return 25.623 * x + 1507.1
 
 def plot_combined_graph(valid_x_list, top_y_list, bottom_y_list, num_lines):
+    
+    
+    lidar_start_angle = 25.0/2.0
+    horizontal_resolution = 0.1
+    lidar_horizontal_fov = 115.0
+    pitch = 0
+    yaw = 0
+    
+        
     plt.figure(figsize=(20, 10))
-
+    ax = plt.axes(projection ="3d")
     colors = ['b', 'g', 'r', 'c']  # Different colors for each region
 
     for i in range(len(valid_x_list)):
@@ -51,6 +61,16 @@ def plot_combined_graph(valid_x_list, top_y_list, bottom_y_list, num_lines):
         # Plotting the parallel lines
         for j in range(num_lines):
             offset = (j + 1) * (bottom_y - top_y) / (num_lines + 1)
+            
+            lidar_pitch = (pitch + (lidar_start_angle - j * horizontal_resolution)) * math.pi/180
+            lidar_yaw = (yaw + (j * horizontal_resolution - (lidar_horizontal_fov/2.0))) * math.pi/180
+            
+            end = {
+                "X": math.cos(lidar_yaw),
+                "Y": math.sin(lidar_yaw),
+                "Z": math.sin(lidar_pitch + offset)
+            }
+
             plt.plot(valid_x, top_y + offset, color='gray', alpha=0.3)
 
     # Add labels and legend
@@ -62,7 +82,25 @@ def plot_combined_graph(valid_x_list, top_y_list, bottom_y_list, num_lines):
     plt.grid(True)
     plt.show()
 
-def main():
+
+def plot_projection():
+    # Creating dataset
+    z = np.random.randint(100, size =(50))
+    x = np.random.randint(80, size =(50))
+    y = np.random.randint(60, size =(50))
+    
+    # Creating figure
+    fig = plt.figure(figsize = (10, 7))
+    ax = plt.axes(projection ="3d")
+    
+    # Creating plot
+    ax.scatter3D(x, y, z, color = "green")
+    plt.title("simple 3D scatter plot")
+    
+    # show plot
+    plt.show()
+
+def regions():
     # Define the specific x range where both left and right are defined
     valid_x_one = np.arange(-59.2906, -27.9015, 0.1)
     valid_x_two = np.arange(-30.1478, 1.9507, 0.1)
@@ -89,6 +127,8 @@ def main():
         num_lines
     )
 
+def main():
+    plot_projection()
 
 if __name__ == "__main__":
     main()

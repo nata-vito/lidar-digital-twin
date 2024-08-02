@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 # Define the boundary functions
 def superior_one(x): 
@@ -32,10 +33,26 @@ def right(x):
 def left(x): 
     return 25.623 * x + 1507.1
 
-
+# j = line index, i = column index & total_lions = total lines
 def OFFSET(j,i,total_lions):
     offset =  (j+1) * (inferior_one(i)-superior_one(i))/(total_lions+1)
-    return offset+ superior_one(i)
+    
+    lidar_start_angle = 25.0/2.0
+    horizontal_resolution = 0.1
+    lidar_horizontal_fov = 115.0
+    pitch = 0
+    yaw = 0
+    
+    lidar_pitch = (pitch + (lidar_start_angle - j * horizontal_resolution)) * math.pi/180
+    lidar_yaw = (yaw + (j * horizontal_resolution - (lidar_horizontal_fov/2.0))) * math.pi/180
+
+    end = {
+        "X": math.cos(lidar_yaw),
+        "Y": math.sin(lidar_yaw),
+        "Z": math.sin(lidar_pitch + offset)
+    }
+
+    return offset + superior_one(i)
 
 
 def plot_combined_graph(valid_x_list, top_y_list, bottom_y_list, num_lines):
@@ -68,7 +85,7 @@ def plot_combined_graph(valid_x_list, top_y_list, bottom_y_list, num_lines):
 
 def main():
     # Define the specific x range where both left and right are defined
-    valid_x_one = np.arange(-19869.514, -734.331, 0.1) # First region from LiDAR simulation
+    valid_x_one = np.arange(-59.29, -27.92, 0.1) # First region from LiDAR simulation
     valid_x_two = np.arange(-30.1478, 1.9507, 0.1) 
     valid_x_three = np.arange(-1.9507, 30.5025, 0.1)
     valid_x_four = np.arange(27.0738916256157, 59.8817733990147, 0.1)   

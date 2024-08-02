@@ -188,8 +188,8 @@ def main(arg):
         ego_vehicle_bp = blueprint_library.filter(arg.filter)[0]
         ego_vehicle_bp.set_attribute('role_name','ego')
         
-        ego_vehicle_transform = random.choice(world.get_map().get_spawn_points())
-        ego_vehicle = world.spawn_actor(ego_vehicle_bp, ego_vehicle_transform)
+        #ego_vehicle_transform = random.choice(world.get_map().get_spawn_points())
+        #ego_vehicle = world.spawn_actor(ego_vehicle_bp, ego_vehicle_transform)
                 
         # --------------
         # Add sensor to ego vehicle. 
@@ -197,11 +197,12 @@ def main(arg):
 
         lidar_list = []
 
-        user_offset = carla.Location(arg.x, arg.y, arg.z)
-        lidar_transform = carla.Transform(carla.Location(x=-0.5, z=2.8) + user_offset)
+        #user_offset = carla.Location(x=-30.61, y=22.45, z=0.40)
+        user_offset = carla.Location(x=-30.61, y=32.45, z=0.40)
+        lidar_transform = carla.Transform(carla.Location(x=-0.5, z=1.8) + user_offset, carla.Rotation(yaw = -35.0))
 
         lidar_bp = generate_lidar_bp(arg, world, blueprint_library, delta)
-        lidar = world.spawn_actor(lidar_bp, lidar_transform, attach_to = ego_vehicle, attachment_type = carla.AttachmentType.Rigid)
+        lidar = world.spawn_actor(lidar_bp, lidar_transform)
 
         point_list = o3d.geometry.PointCloud()
         lidar.listen(lambda data: lidar_callback(data, point_list))
@@ -210,15 +211,15 @@ def main(arg):
         # --------------
         # Place spectator on ego spawning
         # --------------
-        spectator = world.get_spectator()
+        #spectator = world.get_spectator()
         # world_snapshot = world.wait_for_tick()
-        spectator.set_transform(ego_vehicle.get_transform())
+        #spectator.set_transform(ego_vehicle.get_transform())
 
         # --------------
         # Enable autopilot for ego vehicle
         # --------------
 
-        ego_vehicle.set_autopilot(True)
+        #ego_vehicle.set_autopilot(True)
 
         
         vis = o3d.visualization.Visualizer()
@@ -237,9 +238,8 @@ def main(arg):
 
         frame = 0
         dt0 = datetime.now()
-
         while True:
-            if frame == 2:
+            if frame == 10:
                 vis.add_geometry(point_list)
 
             vis.update_geometry(point_list)
@@ -259,14 +259,14 @@ def main(arg):
             dt0 = datetime.now()
             frame += 1
             spectator = world.get_spectator()
-            transform = ego_vehicle.get_transform()
-            spectator.set_transform(carla.Transform(transform.location+carla.Location(z=50),carla.Rotation(pitch=-90,yaw=0)))
+            #transform = ego_vehicle.get_transform()
+           # spectator.set_transform(carla.Transform(transform.location+carla.Location(z=50),carla.Rotation(pitch=-90,yaw=0)))
 
     finally:
         world.apply_settings(original_settings)
         traffic_manager.set_synchronous_mode(False)
         client.stop_recorder()
-        ego_vehicle.destroy()
+        #ego_vehicle.destroy()
         
         for lidar in lidar_list:
             lidar.destroy()
